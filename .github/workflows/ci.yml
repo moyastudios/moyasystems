@@ -1,0 +1,35 @@
+name: CI
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: westbridge
+        ports: ["5432:5432"]
+        options: --health-cmd pg_isready --health-interval 5s --health-retries 10
+    env:
+      MIGRATE_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/westbridge
+      TEST_API_DATABASE_URL: postgresql://wb_api:api@localhost:5432/westbridge
+      TEST_CONFIG_DATABASE_URL: postgresql://wb_config:cfg@localhost:5432/westbridge
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @westbridge/db exec prisma validate
+      - run: pnpm db:migrate && pnpm db:roles
+      - run: psql "$MIGRATE_DATABASE_URL" -c "ALTER ROLE wb_api PASSWORD 'api'; ALTER ROLE wb_config PASSWORD 'cfg';"
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm --filter @westbridge/config-dashboard build
+        env:
+          # Build-time placeholders only; nothing connects during the build.
+          DATABASE_URL: postgresql://localhost/unused

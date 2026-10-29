@@ -1,0 +1,25 @@
+{
+  "name": "@westbridge/config-dashboard",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@simplewebauthn/browser": "14.0.0",
+    "@simplewebauthn/server": "14.0.3",
+    "@westbridge/core": "workspace:*",
+    "@westbridge/db": "workspace:*",
+    "@westbridge/shared": "workspace:*",
+    "next": "16.4.3",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "server-only": "0.0.1",
+    "zod": "4.6.7"
+  },
+  "devDependencies": { "@types/react": "19.3.0", "@types/react-dom": "19.3.0" }
+}

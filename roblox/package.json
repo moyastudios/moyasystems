@@ -1,0 +1,8 @@
+{
+  "name": "@westbridge/roblox",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": { "test": "vitest run" },
+  "devDependencies": { "wasmoon": "1.16.0" }
+}

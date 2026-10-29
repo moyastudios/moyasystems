@@ -1,0 +1,35 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalPassThroughEnv": [
+    "TEST_API_DATABASE_URL",
+    "TEST_CONFIG_DATABASE_URL",
+    "MIGRATE_DATABASE_URL"
+  ],
+  "tasks": {
+    "generate": {
+      "cache": false
+    },
+    "build": {
+      "dependsOn": [
+        "^build",
+        "^generate"
+      ],
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**",
+        "dist/**"
+      ]
+    },
+    "typecheck": {
+      "dependsOn": [
+        "^generate"
+      ]
+    },
+    "test": {
+      "dependsOn": [
+        "^generate"
+      ],
+      "cache": false
+    }
+  }
+}

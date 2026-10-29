@@ -1,0 +1,13 @@
+{
+  "name": "@westbridge/core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts", "./http": "./src/http.ts" },
+  "scripts": { "typecheck": "tsc -p .", "test": "vitest run --passWithNoTests" },
+  "dependencies": {
+    "@westbridge/db": "workspace:*",
+    "@westbridge/shared": "workspace:*",
+    "zod": "4.6.7"
+  }
+}
