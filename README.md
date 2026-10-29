@@ -25,23 +25,13 @@ roblox/                Luau scripts (install into the place via Roblox Studio)
 ## 1. Neon database
 
 1. In Vercel → **Storage** → **Create** → **Neon** (Marketplace). Pick a region near your players (e.g. London `eu-west-2`).
-2. Connect it to the **westbridge-api** project only. The integration injects the *owner* connection string; **don't use it at runtime**. You'll replace `DATABASE_URL` with a restricted role below. Don't connect it to the config project.
+2. Skip connecting it to a project: the integration would inject the *owner* connection string, which must never be used at runtime. Each app gets a restricted-role `DATABASE_URL` instead (below).
 3. Copy the owner connection string from the Neon console (**direct** host, not `-pooler`). Keep it on your machine as `MIGRATE_DATABASE_URL` (or as a GitHub Actions secret). It is only for migrations.
-4. Run migrations and create the roles:
-   ```bash
-   export MIGRATE_DATABASE_URL='postgresql://neondb_owner:…@ep-….eu-west-2.aws.neon.tech/neondb?sslmode=require'
-   pnpm install
-   pnpm db:migrate
-   pnpm db:roles
-   ```
-5. Set the role passwords (Neon console → SQL editor), with two different random values:
-   ```sql
-   ALTER ROLE wb_api PASSWORD '…';
-   ALTER ROLE wb_config PASSWORD '…';
-   ```
+4. Add GitHub secrets (repo → Settings → Secrets and variables → Actions): `MIGRATE_DATABASE_URL` (the owner string from step 3), and two different random passwords, `WB_API_DB_PASSWORD` and `WB_CONFIG_DB_PASSWORD` (`openssl rand -hex 24`).
+5. Actions → **Migrate database** → **Run workflow**. It applies migrations, creates the `wb_api` / `wb_config` roles and grants, and sets their passwords. (Locally instead: `pnpm db:migrate && pnpm db:roles` with `MIGRATE_DATABASE_URL` exported, then `ALTER ROLE … PASSWORD` in the Neon SQL editor.)
 6. Build the two runtime URLs from the **pooled** host (`ep-…-pooler…`): `postgresql://wb_api:<pw>@<pooled-host>/neondb?sslmode=require` and the same for `wb_config`.
 
-Re-run `pnpm db:migrate && pnpm db:roles` after every schema change. What each role can do:
+Re-run the **Migrate database** workflow after every schema change. What each role can do:
 
 | Role | Used by | Access |
 |---|---|---|

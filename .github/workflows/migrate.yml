@@ -1,0 +1,49 @@
+name: Migrate database
+# Run manually: Actions → Migrate database → Run workflow.
+# Applies Prisma migrations and (re)applies sql/roles.sql as the Neon owner.
+# Secrets (Settings → Secrets and variables → Actions):
+#   MIGRATE_DATABASE_URL   owner connection string, direct (non-pooled) host
+#   WB_API_DB_PASSWORD     optional: sets the wb_api login password
+#   WB_CONFIG_DB_PASSWORD  optional: sets the wb_config login password
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: migrate-database
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    env:
+      MIGRATE_DATABASE_URL: ${{ secrets.MIGRATE_DATABASE_URL }}
+    steps:
+      - name: Check secret
+        run: test -n "$MIGRATE_DATABASE_URL" || { echo "::error::Add the MIGRATE_DATABASE_URL secret first."; exit 1; }
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: which psql || (sudo apt-get update -q && sudo apt-get install -yq postgresql-client)
+      - run: pnpm install --frozen-lockfile
+      - name: Apply migrations
+        run: pnpm db:migrate
+      - name: Apply roles and grants
+        run: pnpm db:roles
+      - name: Set login passwords
+        env:
+          API_PW: ${{ secrets.WB_API_DB_PASSWORD }}
+          CONFIG_PW: ${{ secrets.WB_CONFIG_DB_PASSWORD }}
+        run: |
+          # Passed as psql variables so they never appear in the command line or logs.
+          if [ -n "$API_PW" ]; then
+            echo "ALTER ROLE wb_api PASSWORD :'pw';" | psql "$MIGRATE_DATABASE_URL" -v ON_ERROR_STOP=1 -q -v pw="$API_PW"
+            echo "wb_api password set"
+          fi
+          if [ -n "$CONFIG_PW" ]; then
+            echo "ALTER ROLE wb_config PASSWORD :'pw';" | psql "$MIGRATE_DATABASE_URL" -v ON_ERROR_STOP=1 -q -v pw="$CONFIG_PW"
+            echo "wb_config password set"
+          fi
