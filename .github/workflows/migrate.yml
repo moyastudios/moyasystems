@@ -47,3 +47,29 @@ jobs:
             echo "ALTER ROLE wb_config PASSWORD :'pw';" | psql "$MIGRATE_DATABASE_URL" -v ON_ERROR_STOP=1 -q -v pw="$CONFIG_PW"
             echo "wb_config password set"
           fi
+      - name: Check app logins through the pooler
+        env:
+          API_PW: ${{ secrets.WB_API_DB_PASSWORD }}
+          CONFIG_PW: ${{ secrets.WB_CONFIG_DB_PASSWORD }}
+        run: |
+          # Logs in exactly as the Vercel apps do (pooled host, app role) and prints the
+          # DATABASE_URL each app should use, with the password replaced by ****.
+          node -e '
+            const owner = new URL(process.env.MIGRATE_DATABASE_URL);
+            const [first, ...rest] = owner.hostname.split(".");
+            const pooled = first.endsWith("-pooler") ? owner.hostname : [first + "-pooler", ...rest].join(".");
+            for (const [role, pw, project] of [["wb_api", process.env.API_PW, "westbridge-api"], ["wb_config", process.env.CONFIG_PW, "westbridge-config"]]) {
+              const u = new URL(owner); u.hostname = pooled; u.username = role; u.password = encodeURIComponent(pw ?? "");
+              u.search = "?sslmode=require";
+              require("fs").appendFileSync(process.env.GITHUB_ENV, `URL_${role}=${u.toString()}\n`);
+              const shown = new URL(u); shown.password = "****";
+              console.log(`${project} DATABASE_URL should be: ${shown.toString()}`);
+            }'
+          for role in wb_api wb_config; do
+            var="URL_$role"
+            if psql "${!var}" -v ON_ERROR_STOP=1 -tAc "select current_user" >/dev/null; then
+              echo "✅ $role can log in through the pooler"
+            else
+              echo "::error::$role could not log in through the pooler"; exit 1
+            fi
+          done
