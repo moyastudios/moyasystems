@@ -5,7 +5,7 @@ Moderation, staff quota and logging for Westbridge, run from Discord, two dashbo
 **Phase 1 (this code):** monorepo, database, API (health, Discord interactions, signed game requests, `/game/link`), the config dashboard's setup wizard, `/link` and `/whoami`, and the Roblox API client + link GUI.
 
 ```
-apps/api               Hono API on Vercel → api.moya-studios.xyz (also runs on a plain Node VPS: pnpm --filter @westbridge/api start)
+apps/api               Hono API → api.moya-studios.xyz (bundled to one Vercel Function; also runs on a plain Node VPS: pnpm --filter @westbridge/api start)
 apps/config-dashboard  Next.js setup wizard → config.moya-studios.xyz (separate Vercel project)
 apps/mod-dashboard     Next.js placeholder → mod.moya-studios.xyz (phase 4)
 packages/db            Prisma schema, migrations, sql/roles.sql
@@ -65,7 +65,7 @@ Create three projects from this repo (Vercel → Add New → Project → import,
 
 | Project | Root directory | Framework | Domain |
 |---|---|---|---|
-| westbridge-api | `apps/api` | Hono | `api.moya-studios.xyz` |
+| westbridge-api | `apps/api` | Other (settings come from `apps/api/vercel.json`) | `api.moya-studios.xyz` |
 | westbridge-config | `apps/config-dashboard` | Next.js | `config.moya-studios.xyz` |
 | westbridge-mod | `apps/mod-dashboard` | Next.js | `mod.moya-studios.xyz` |
 

@@ -29,6 +29,7 @@ jobs:
       - run: psql "$MIGRATE_DATABASE_URL" -c "ALTER ROLE wb_api PASSWORD 'api'; ALTER ROLE wb_config PASSWORD 'cfg';"
       - run: pnpm typecheck
       - run: pnpm test
+      - run: pnpm --filter @westbridge/api build
       - run: pnpm --filter @westbridge/config-dashboard build
         env:
           # Build-time placeholders only; nothing connects during the build.
