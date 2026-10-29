@@ -16,6 +16,8 @@ export function redact(value: unknown, depth = 0): unknown {
 
 /** Server log helper that never prints secrets. */
 export function logError(message: string, err: unknown, extra?: Record<string, unknown>) {
-  const e = err instanceof Error ? { name: err.name, message: err.message } : { message: String(err) };
+  // Name, message and code only: never the input, URL or stack, which can contain credentials.
+  const code = (err as { code?: unknown })?.code;
+  const e = err instanceof Error ? { name: err.name, message: err.message.slice(0, 300), ...(typeof code === "string" ? { code } : {}) } : { message: "non-error thrown" };
   console.error(JSON.stringify({ level: "error", message, error: e, ...(redact(extra ?? {}) as object) }));
 }
