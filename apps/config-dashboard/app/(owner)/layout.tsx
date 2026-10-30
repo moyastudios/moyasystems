@@ -1,39 +1,42 @@
-import Link from "next/link";
 import { SETUP_STEPS, SETUP_STEP_TITLES } from "@westbridge/shared";
+import { Brand } from "@/components/Brand";
+import { StepNav } from "@/components/StepNav";
 import { requireOwner } from "@/lib/session";
 import { setupState } from "@/lib/setup";
 
 export const dynamic = "force-dynamic";
 
 export default async function OwnerLayout({ children }: { children: React.ReactNode }) {
-  await requireOwner();
+  const s = await requireOwner();
   const st = await setupState();
+  const steps = SETUP_STEPS.filter((k) => k !== "claim").map((k, i) => ({
+    href: `/setup/${k}`,
+    label: SETUP_STEP_TITLES[k],
+    done: st.steps[k],
+    number: i + 2,
+  }));
   return (
     <div className="shell">
-      <nav>
-        <strong>Westbridge config</strong>
-        <p className="eyebrow">{st.locked ? "Settings" : "Setup"}</p>
-        <ol>
-          {SETUP_STEPS.filter((k) => k !== "claim").map((k) => (
-            <li key={k} className={st.steps[k] ? "done" : ""}>
-              <Link href={`/setup/${k}`}>{SETUP_STEP_TITLES[k]}</Link>
-            </li>
-          ))}
-        </ol>
-        <p className="eyebrow">Security</p>
-        <ul>
-          <li>
-            <Link href="/versions">Versions</Link>
-          </li>
-          <li>
-            <Link href="/owners">Owners &amp; passkeys</Link>
-          </li>
-        </ul>
-        <form action="/auth/logout" method="post">
-          <button className="link">Sign out</button>
-        </form>
-      </nav>
-      <main>{children}</main>
+      <aside className="sidebar">
+        <Brand />
+        <StepNav
+          steps={steps}
+          locked={st.locked}
+          extra={[
+            { href: "/versions", label: "Versions" },
+            { href: "/owners", label: "Owners & passkeys" },
+          ]}
+        />
+        <div className="sidebar-foot">
+          <span className="muted">
+            Signed in as <code>{s.discordId}</code>
+          </span>
+          <form action="/auth/logout" method="post">
+            <button className="ghost small">Sign out</button>
+          </form>
+        </div>
+      </aside>
+      <main className="content">{children}</main>
     </div>
   );
 }

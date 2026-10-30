@@ -1,3 +1,4 @@
+import { Brand } from "@/components/Brand";
 import { redirect } from "next/navigation";
 import { csrfToken, requireDiscordSession } from "@/lib/session";
 import { getPasskeyMode } from "./actions";
@@ -11,6 +12,7 @@ export default async function PasskeyPage() {
   const mode = await getPasskeyMode();
   return (
     <main className="narrow">
+      <Brand />
       {mode === "login" && <h1>Confirm with your passkey</h1>}
       {mode === "claim" && (
         <>
