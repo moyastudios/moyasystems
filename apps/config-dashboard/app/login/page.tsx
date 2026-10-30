@@ -1,3 +1,4 @@
+import { Brand } from "@/components/Brand";
 import { SettingKeys } from "@westbridge/shared";
 import { db } from "@/lib/db";
 
@@ -16,10 +17,11 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   const claimed = (await db().setting.count({ where: { key: SettingKeys.setupClaimedBy } })) > 0;
   return (
     <main className="narrow">
-      <h1>Westbridge config</h1>
+      <Brand />
+      <h1>Sign in</h1>
       <p>Owner access only. You&apos;ll confirm with your passkey after signing in.</p>
       {error && ERRORS[error] && <p className="error">{ERRORS[error]}</p>}
-      <a className="button" href="/auth/discord">
+      <a className="button discord" href="/auth/discord">
         Sign in with Discord
       </a>
       {!claimed && (
