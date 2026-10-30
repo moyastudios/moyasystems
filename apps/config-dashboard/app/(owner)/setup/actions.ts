@@ -2,7 +2,7 @@
 
 import { randomBytes } from "node:crypto";
 import { z } from "zod";
-import { applyConfigChange, ConfigError, discord, getSetting, openCloud, replaceRanks, setSetting } from "@westbridge/core";
+import { applyConfigChange, ConfigError, discord, getSetting, openCloud, publicGroupRoles, replaceRanks, setSetting } from "@westbridge/core";
 import {
   DISCORD_CHANNEL_KEYS,
   DISCORD_CHANNEL_LABELS,
@@ -113,14 +113,14 @@ export async function runConnectionTest(csrf: string) {
     const [msg, bans, groups] = await Promise.all([
       openCloud.publishMessage(key, universeId, MESSAGING_TOPIC, { type: "probe", checkId: a2g.id }),
       openCloud.listUserRestrictions(key, universeId),
-      openCloud.listGroupRoles(key, groupId),
+      publicGroupRoles(groupId),
     ]);
     const detail = [
       msg.ok ? "MessagingService publish: OK" : `MessagingService publish failed (${msg.status}): check the universe-messaging-service:publish scope`,
       bans.ok ? "Ban API read: OK" : `Ban API read failed (${bans.status}): check the user-restrictions scopes`,
-      groups.ok ? "Group roles read: OK" : `Group roles read failed (${groups.status}): check the group ID and group:read scope`,
+      groups.ok && groups.data.length ? "Group found: OK" : `Group not found (${groups.ok ? "no roles" : groups.status}): check the group ID`,
     ];
-    const result: OpenCloudTest = { at: new Date().toISOString(), messaging: msg.ok, bans: bans.ok, groups: groups.ok, detail };
+    const result: OpenCloudTest = { at: new Date().toISOString(), messaging: msg.ok, bans: bans.ok, groups: groups.ok && groups.data.length > 0, detail };
     await db().setting.upsert({
       where: { key: SettingKeys.testOpenCloud },
       create: { key: SettingKeys.testOpenCloud, value: JSON.stringify(result), updatedBy: actor(s.discordId) },

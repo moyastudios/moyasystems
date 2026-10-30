@@ -16,7 +16,7 @@ export default async function RobloxStep() {
       <p>
         Create an Open Cloud API key at <a href="https://create.roblox.com/dashboard/credentials">create.roblox.com → Credentials</a> limited
         to the Westbridge universe and group, with: <code>universe-messaging-service:publish</code>,{" "}
-        <code>universe.user-restriction:read</code>, <code>universe.user-restriction:write</code> and <code>group:read</code>.
+        <code>universe.user-restriction:read</code> and <code>universe.user-restriction:write</code>. No group permissions are needed.
       </p>
       <RobloxForm
         csrf={csrfToken(s)}

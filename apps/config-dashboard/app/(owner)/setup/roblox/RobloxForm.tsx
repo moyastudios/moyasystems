@@ -117,7 +117,7 @@ export function RobloxForm(p: {
         <h2>Connection test</h2>
         <p>Join the live game first so a server is running, then run the test.</p>
         <ul className="plain">
-          <li>{tick(tests.openCloudOk)} Open Cloud key (messaging, Ban API, group)</li>
+          <li>{tick(tests.openCloudOk)} Open Cloud key and group (messaging, Ban API, group ID)</li>
           {tests.openCloud?.detail.map((d) => <li key={d} className="muted">{d}</li>)}
           <li>{tick(tests.apiToGame)} API → game (MessagingService probe received by a server)</li>
           <li>{tick(tests.gameToApi)} Game → API (signed request verified)</li>
