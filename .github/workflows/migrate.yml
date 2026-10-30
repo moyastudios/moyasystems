@@ -47,7 +47,7 @@ jobs:
             echo "ALTER ROLE wb_config PASSWORD :'pw';" | psql "$MIGRATE_DATABASE_URL" -v ON_ERROR_STOP=1 -q -v pw="$CONFIG_PW"
             echo "wb_config password set"
           fi
-      - name: Check app logins through the pooler
+      - name: Build app connection strings
         env:
           API_PW: ${{ secrets.WB_API_DB_PASSWORD }}
           CONFIG_PW: ${{ secrets.WB_CONFIG_DB_PASSWORD }}
@@ -65,6 +65,9 @@ jobs:
               const shown = new URL(u); shown.password = "****";
               console.log(`${project} DATABASE_URL should be: ${shown.toString()}`);
             }'
+      # Separate step: values written to GITHUB_ENV are only visible to later steps.
+      - name: Log in as each app
+        run: |
           for role in wb_api wb_config; do
             var="URL_$role"
             if psql "${!var}" -v ON_ERROR_STOP=1 -tAc "select current_user" >/dev/null; then
