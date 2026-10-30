@@ -50,10 +50,9 @@ Re-run the **Migrate database** workflow after every schema change. What each ro
 ## 3. Roblox Open Cloud key and secret
 
 1. [create.roblox.com/dashboard/credentials](https://create.roblox.com/dashboard/credentials) → **Create API key**, owned by the group that owns Westbridge.
-2. Add these permissions, each restricted to the Westbridge **experience** (or the group for group:read):
+2. Add these permissions, each restricted to the Westbridge **experience** (no group permissions are needed; group roles are read from Roblox's public API):
    - `universe-messaging-service:publish`
    - `universe.user-restriction:read` and `universe.user-restriction:write` (Ban API)
-   - `group:read`
 3. Set an **IP allowlist** of `0.0.0.0/0` (Vercel has no fixed outbound IPs) and an expiry you'll remember to rotate.
 4. Paste the key into wizard step 3. It's stored encrypted and never shown again.
 5. In wizard step 3, **Generate signing secret**. It's shown once. In Creator Dashboard → Westbridge → **Secrets**, create a secret named `westbridge_api`, domain `api.moya-studios.xyz`, value = the generated secret. For Studio testing, add the same under **Game Settings → Security → Secrets**.

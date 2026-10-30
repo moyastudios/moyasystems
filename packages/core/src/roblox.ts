@@ -27,6 +27,16 @@ export const openCloud = {
     call(key, "POST", `/cloud/v2/universes/${universeId}:publishMessage`, { topic, message: JSON.stringify(message) }),
   listUserRestrictions: (key: string, universeId: string) =>
     call(key, "GET", `/cloud/v2/universes/${universeId}/user-restrictions?maxPageSize=1`),
-  listGroupRoles: (key: string, groupId: string) =>
-    call<{ groupRoles?: { id: string; displayName: string; rank: number }[] }>(key, "GET", `/cloud/v2/groups/${groupId}/roles?maxPageSize=20`),
 };
+
+/** A group's roles are public, so no API key is needed (and none is sent). */
+export async function publicGroupRoles(groupId: string): Promise<OpenCloudResult<{ name: string; rank: number }[]>> {
+  try {
+    const res = await fetch(`https://groups.roblox.com/v1/groups/${encodeURIComponent(groupId)}/roles`, { signal: AbortSignal.timeout(8000) });
+    if (!res.ok) return { ok: false, status: res.status, error: res.statusText };
+    const body = (await res.json()) as { roles?: { name: string; rank: number }[] };
+    return { ok: true, data: (body.roles ?? []).map((r) => ({ name: r.name, rank: r.rank })) };
+  } catch (e) {
+    return { ok: false, status: 0, error: e instanceof Error ? e.name : "network error" };
+  }
+}
