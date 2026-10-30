@@ -11,7 +11,8 @@ export type ActionResult<T = unknown> = { ok: true; data: T } | { ok: false; err
  * owner session (Discord + passkey) → CSRF → rate limit → zod → passkey re-check (single use) → run → audit.
  */
 export async function ownerAction<S extends z.ZodType, T>(
-  opts: { name: string; csrf: unknown; input: unknown; schema: S; stepUp: boolean },
+  /** `audit: false` only for read-only polling (it would flood the audit channel); every change is audited. */
+  opts: { name: string; csrf: unknown; input: unknown; schema: S; stepUp: boolean; audit?: boolean },
   run: (input: z.infer<S>, s: Session) => Promise<T>,
 ): Promise<ActionResult<T>> {
   const s = await requireOwner();
@@ -22,7 +23,7 @@ export async function ownerAction<S extends z.ZodType, T>(
   if (opts.stepUp && !(await consumeStepUp(s))) return { ok: false, error: "Confirm with your passkey.", stepUp: true };
   try {
     const data = await run(parsed.data, s);
-    await auditConfig(`owner:${s.discordId}`, `config.${opts.name}`, { ok: true });
+    if (opts.audit !== false) await auditConfig(`owner:${s.discordId}`, `config.${opts.name}`, { ok: true });
     return { ok: true, data };
   } catch (e) {
     await auditConfig(`owner:${s.discordId}`, `config.${opts.name}`, { ok: false, error: e instanceof ConfigError ? e.message : "internal" });

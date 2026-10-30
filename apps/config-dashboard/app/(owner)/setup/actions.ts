@@ -131,7 +131,7 @@ export async function runConnectionTest(csrf: string) {
 }
 
 export async function getTestStatus(csrf: string) {
-  return ownerAction({ name: "roblox.test_status", csrf, input: undefined, schema: none, stepUp: false }, async () => (await setupState()).tests);
+  return ownerAction({ name: "roblox.test_status", csrf, input: undefined, schema: none, stepUp: false, audit: false }, async () => (await setupState()).tests);
 }
 
 // ── Step 4: Ranks ──
